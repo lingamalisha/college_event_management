@@ -22,6 +22,15 @@ API.interceptors.response.use(
         // Log more details for debugging
         if (error.response) {
             console.error(`🔴 API Error [${error.response.status}]:`, message);
+
+            // Auto-logout if token is invalid or expired
+            if (error.response.status === 401) {
+                localStorage.removeItem('userInfo');
+                // Redirect to login if not already there
+                if (window.location.pathname !== '/login') {
+                    window.location.href = '/login';
+                }
+            }
         } else {
             console.error('🔴 API Connection Error:', message);
         }

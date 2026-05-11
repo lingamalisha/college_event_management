@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import API from '../api';
-import { Calendar, MapPin, Type, AlignLeft, Loader2, Save, ArrowLeft } from 'lucide-react';
+import { Calendar, MapPin, Type, AlignLeft, Loader2, Save, ArrowLeft, Edit3, Sparkles } from 'lucide-react';
 
 const EditEvent = () => {
     const { id } = useParams();
@@ -20,7 +20,6 @@ const EditEvent = () => {
         const fetchEvent = async () => {
             try {
                 const { data } = await API.get(`/events/${id}`);
-                // Format date for datetime-local input
                 const formattedDate = new Date(data.date).toISOString().slice(0, 16);
                 setFormData({
                     title: data.title,
@@ -29,7 +28,7 @@ const EditEvent = () => {
                     venue: data.venue
                 });
             } catch (err) {
-                setError('Failed to load event details');
+                setError('Failed to load event details. Please verify the event ID.');
             } finally {
                 setLoading(false);
             }
@@ -45,7 +44,7 @@ const EditEvent = () => {
             await API.put(`/events/${id}`, formData);
             navigate('/manage-events');
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to update event');
+            setError(err.response?.data?.message || 'Failed to update event. Please check your connection.');
         } finally {
             setSaving(false);
         }
@@ -56,39 +55,45 @@ const EditEvent = () => {
     };
 
     if (loading) return (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '70vh' }}>
-            <Loader2 className="animate-spin" size={40} color="var(--primary-accent)" />
+        <div className="loading-screen">
+            <div className="spinner" />
+            <p style={{ color: 'var(--text-muted)' }}>Fetching event data...</p>
         </div>
     );
 
     return (
-        <div className="container" style={{ paddingTop: '2rem' }}>
-            <button
-                onClick={() => navigate('/manage-events')}
-                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2rem' }}
-            >
-                <ArrowLeft size={18} />
-                Back to Manage Events
-            </button>
+        <div className="page-wrapper" style={{ background: 'var(--bg-secondary)', paddingBottom: '4rem' }}>
+            <div className="container" style={{ maxWidth: '800px' }}>
+                <div className="flex-between mb-4">
+                    <button onClick={() => navigate(-1)} className="btn btn-sm btn-ghost">
+                        <ArrowLeft size={16} /> Back
+                    </button>
+                    <div className="badge badge-primary"><Sparkles size={14} /> Update Mode</div>
+                </div>
 
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <div className="glass-card" style={{ padding: '3rem', width: '100%', maxWidth: '600px' }}>
-                    <div style={{ marginBottom: '2.5rem' }}>
-                        <h1 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '0.5rem' }}>Edit <span style={{ color: 'var(--primary-accent)' }}>Event</span></h1>
-                        <p style={{ color: 'var(--text-muted)' }}>Update the details for this event below.</p>
+                <div className="card fade-in" style={{ padding: '3rem', boxShadow: 'var(--shadow-xl)' }}>
+                    <div style={{ marginBottom: '2.5rem', textAlign: 'center' }}>
+                        <div className="avatar avatar-lg" style={{ margin: '0 auto 1.5rem', background: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary)' }}>
+                            <Edit3 size={24} />
+                        </div>
+                        <h1 style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.5px' }}>
+                            Edit <span style={{ color: 'var(--primary)' }}>Event Details</span>
+                        </h1>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9375rem', marginTop: '0.5rem' }}>
+                            Update the information for "{formData.title}"
+                        </p>
                     </div>
 
                     {error && (
-                        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', padding: '0.75rem', borderRadius: '8px', marginBottom: '1.5rem' }}>
-                            {error}
+                        <div className="alert alert-error mb-4">
+                            <Edit3 size={18} />
+                            <span>{error}</span>
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                            <label style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Type size={16} /> Event Title
-                            </label>
+                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+                        <div className="form-group">
+                            <label className="form-label"><Type size={16} /> Event Title</label>
                             <input
                                 type="text"
                                 name="title"
@@ -99,11 +104,9 @@ const EditEvent = () => {
                             />
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                <label style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <Calendar size={16} /> Date & Time
-                                </label>
+                        <div className="grid-2">
+                            <div className="form-group">
+                                <label className="form-label"><Calendar size={16} /> Date & Time</label>
                                 <input
                                     type="datetime-local"
                                     name="date"
@@ -113,10 +116,8 @@ const EditEvent = () => {
                                     required
                                 />
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                <label style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <MapPin size={16} /> Venue
-                                </label>
+                            <div className="form-group">
+                                <label className="form-label"><MapPin size={16} /> Venue</label>
                                 <input
                                     type="text"
                                     name="venue"
@@ -128,24 +129,23 @@ const EditEvent = () => {
                             </div>
                         </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                            <label style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <AlignLeft size={16} /> Description
-                            </label>
+                        <div className="form-group">
+                            <label className="form-label"><AlignLeft size={16} /> Description</label>
                             <textarea
                                 name="description"
                                 className="input-field"
-                                style={{ minHeight: '120px', resize: 'vertical' }}
+                                style={{ minHeight: '160px' }}
                                 value={formData.description}
                                 onChange={handleChange}
                                 required
                             ></textarea>
                         </div>
 
-                        <button type="submit" className="btn-primary" style={{ marginTop: '1rem' }} disabled={saving}>
-                            {saving ? <Loader2 className="animate-spin" /> : <Save size={18} />}
-                            {saving ? 'Saving Changes...' : 'Update Event'}
-                        </button>
+                        <div className="flex-center" style={{ marginTop: '1rem' }}>
+                            <button type="submit" className="btn btn-primary btn-lg w-full" style={{ maxWidth: '300px' }} disabled={saving}>
+                                {saving ? <Loader2 className="animate-spin" size={20} /> : <><Save size={20} /> Save Changes</>}
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>

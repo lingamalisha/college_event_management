@@ -17,9 +17,9 @@ const App = () => {
     return (
         <AuthProvider>
             <Router>
-                <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+                <div className="app-container">
                     <Navbar />
-                    <main style={{ flex: '1' }}>
+                    <main className="main-content">
                         <Routes>
                             <Route path="/" element={<Home />} />
                             <Route path="/login" element={<Login />} />
@@ -59,7 +59,6 @@ const App = () => {
                             />
                         </Routes>
                     </main>
-                    <Footer />
                 </div>
             </Router>
         </AuthProvider>

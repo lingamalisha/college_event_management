@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, User, Calendar, PlusCircle, Menu, LayoutDashboard, Settings } from 'lucide-react';
+import { LogOut, Calendar, PlusCircle, LayoutDashboard, ChevronDown, Ticket, Zap } from 'lucide-react';
 
 const Navbar = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
 
@@ -15,7 +16,6 @@ const Navbar = () => {
         navigate('/login');
     };
 
-    // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -26,63 +26,114 @@ const Navbar = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    const isActive = (path) => location.pathname === path;
+    const initials = user?.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U';
+
     return (
         <nav className="nav">
-            <Link to="/" className="logo" style={{ textDecoration: 'none' }}>Evently</Link>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+                <Link to="/" className="nav-logo" aria-label="Evently Home">
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Zap size={20} style={{ color: '#4F46E5' }} />
+                        Evently
+                    </span>
+                </Link>
+                <div className="nav-links" style={{ display: 'flex', gap: '4px' }}>
+                    <Link
+                        to="/"
+                        className="nav-link"
+                        style={{ color: isActive('/') ? 'var(--primary)' : undefined, background: isActive('/') ? 'rgba(79,70,229,0.08)' : undefined }}
+                        aria-current={isActive('/') ? 'page' : undefined}
+                    >
+                        Events
+                    </Link>
+                    {user?.role === 'admin' && (
+                        <>
+                            <Link
+                                to="/manage-events"
+                                className="nav-link"
+                                style={{ color: isActive('/manage-events') ? 'var(--primary)' : undefined, background: isActive('/manage-events') ? 'rgba(79,70,229,0.08)' : undefined }}
+                            >
+                                Dashboard
+                            </Link>
+                            <Link
+                                to="/create-event"
+                                className="nav-link"
+                                style={{ color: isActive('/create-event') ? 'var(--primary)' : undefined, background: isActive('/create-event') ? 'rgba(79,70,229,0.08)' : undefined }}
+                            >
+                                Create Event
+                            </Link>
+                        </>
+                    )}
+                    {user && user.role !== 'admin' && (
+                        <Link
+                            to="/my-registrations"
+                            className="nav-link"
+                            style={{ color: isActive('/my-registrations') ? 'var(--primary)' : undefined, background: isActive('/my-registrations') ? 'rgba(79,70,229,0.08)' : undefined }}
+                        >
+                            My Tickets
+                        </Link>
+                    )}
+                </div>
+            </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                <Link to="/" style={{ color: 'white', textDecoration: 'none', fontWeight: '500' }}>Home</Link>
-
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 {user ? (
                     <div style={{ position: 'relative' }} ref={dropdownRef}>
-                        <button 
-                            className="hamburger-btn"
+                        <button
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', borderRadius: '100px' }}
+                            aria-label="Open user menu"
+                            aria-expanded={isDropdownOpen}
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: '8px',
+                                padding: '6px 12px 6px 6px',
+                                background: 'white', border: '1.5px solid var(--border)',
+                                borderRadius: '999px', cursor: 'pointer',
+                                transition: 'all 0.2s', boxShadow: 'var(--shadow-sm)'
+                            }}
                         >
-                            <Menu size={20} />
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <User size={16} color="var(--primary-accent)" />
-                                <span style={{ fontSize: '0.875rem', fontWeight: '600' }}>{user.name.split(' ')[0]}</span>
+                            <div className="avatar" style={{ width: '32px', height: '32px', fontSize: '0.8rem' }}>
+                                {initials}
                             </div>
+                            <span style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--text)' }}>
+                                {user.name.split(' ')[0]}
+                            </span>
+                            <ChevronDown size={14} style={{ color: 'var(--text-muted)', transition: 'transform 0.2s', transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
                         </button>
 
                         {isDropdownOpen && (
                             <div className="dropdown-menu">
-                                <div style={{ padding: '8px 16px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                    Logged in as <strong>{user.role}</strong>
+                                <div style={{ padding: '10px 14px 6px', borderBottom: '1px solid var(--border-light)', marginBottom: '4px' }}>
+                                    <div style={{ fontWeight: '700', fontSize: '0.9rem', color: 'var(--text)' }}>{user.name}</div>
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{user.email}</div>
+                                    <span className="badge badge-primary" style={{ marginTop: '6px', fontSize: '0.7rem' }}>{user.role}</span>
                                 </div>
-                                <div className="dropdown-divider"></div>
-                                
+
                                 {user.role === 'admin' ? (
                                     <>
                                         <Link to="/manage-events" className="dropdown-item" onClick={() => setIsDropdownOpen(false)}>
-                                            <LayoutDashboard size={18} />
-                                            Manage Events
+                                            <LayoutDashboard size={16} /> Dashboard
                                         </Link>
                                         <Link to="/create-event" className="dropdown-item" onClick={() => setIsDropdownOpen(false)}>
-                                            <PlusCircle size={18} />
-                                            Add Event
+                                            <PlusCircle size={16} /> Create Event
                                         </Link>
                                     </>
                                 ) : (
                                     <Link to="/my-registrations" className="dropdown-item" onClick={() => setIsDropdownOpen(false)}>
-                                        <Calendar size={18} />
-                                        My Events
+                                        <Ticket size={16} /> My Tickets
                                     </Link>
                                 )}
-
-                                <div className="dropdown-divider"></div>
-                                <div className="dropdown-item" onClick={handleLogout} style={{ color: '#ff636d' }}>
-                                    <LogOut size={18} />
-                                    Logout
-                                </div>
+                                <div className="dropdown-divider" />
+                                <button className="dropdown-item danger" onClick={handleLogout}>
+                                    <LogOut size={16} /> Sign Out
+                                </button>
                             </div>
                         )}
                     </div>
                 ) : (
-                    <div style={{ display: 'flex', gap: '1rem' }}>
-                        <Link to="/login" style={{ color: 'white', textDecoration: 'none', padding: '8px 16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', fontSize: '0.875rem', fontWeight: '500' }}>Admin Login</Link>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        <Link to="/login" className="btn btn-ghost btn-sm">Sign In</Link>
+                        <Link to="/signup" className="btn btn-primary btn-sm">Get Started</Link>
                     </div>
                 )}
             </div>

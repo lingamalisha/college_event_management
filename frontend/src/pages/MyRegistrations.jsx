@@ -2,32 +2,50 @@ import React, { useState, useEffect } from 'react';
 import API from '../api';
 import EventCard from '../components/EventCard';
 import EventTicket from '../components/EventTicket';
-import { Calendar, Loader2, Sparkles, AlertCircle } from 'lucide-react';
+import { 
+    Calendar, Loader2, Sparkles, AlertCircle, LayoutDashboard, 
+    Ticket, Search, Plus, Filter, Zap, RefreshCcw, ArrowRight
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const MyRegistrations = () => {
     const [registrations, setRegistrations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [selectedRegistration, setSelectedRegistration] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
-        const fetchRegistrations = async () => {
-            try {
-                const { data } = await API.get('/registrations/my');
-                setRegistrations(data);
-                setError('');
-            } catch (err) {
-                console.error('Failed to fetch registrations', err);
-                setError('Could not load your registrations. Please check your connection.');
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchRegistrations();
     }, []);
 
+    const fetchRegistrations = async () => {
+        setLoading(true);
+        try {
+            const { data } = await API.get('/registrations/my');
+            setRegistrations(data);
+            setError('');
+        } catch (err) {
+            console.error('Failed to fetch registrations', err);
+            setError('Could not load your registrations. Please check your connection.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const filteredRegistrations = registrations.filter(reg => 
+        reg.event?.title?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    if (loading && registrations.length === 0) return (
+        <div className="loading-screen">
+            <div className="spinner" />
+            <p style={{ color: 'var(--text-muted)' }}>Retrieving your tickets...</p>
+        </div>
+    );
+
     return (
-        <div className="container" style={{ paddingTop: '2rem' }}>
+        <div className="dashboard-layout page-wrapper">
             {selectedRegistration && (
                 <EventTicket 
                     registration={selectedRegistration} 
@@ -35,32 +53,75 @@ const MyRegistrations = () => {
                 />
             )}
 
-            <div style={{ marginBottom: '3rem' }}>
-                <h1 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '0.5rem' }}>
-                    My <span style={{ color: 'var(--primary-accent)' }}>Registrations</span>
-                </h1>
-                <p style={{ color: 'var(--text-muted)' }}>
-                    Here are the events you've signed up for. Get ready to have a blast!
-                </p>
-            </div>
-
-            {error && (
-                <div style={{ textAlign: 'center', padding: '3rem', background: 'rgba(239, 68, 68, 0.05)', borderRadius: '16px', border: '1px solid rgba(239, 68, 68, 0.1)', marginBottom: '2rem' }}>
-                    <AlertCircle size={40} color="#ef4444" style={{ margin: '0 auto 1rem' }} />
-                    <h3 style={{ color: 'white', marginBottom: '0.5rem' }}>Sync Issue</h3>
-                    <p style={{ color: 'var(--text-muted)' }}>{error}</p>
-                    <button onClick={() => window.location.reload()} className="btn-primary" style={{ marginTop: '1.5rem', background: 'none', border: '1px solid var(--primary-accent)', color: 'var(--primary-accent)' }}>Retry Sync</button>
+            {/* Sidebar */}
+            <aside className="sidebar">
+                <div style={{ padding: '0 0.5rem 1rem' }}>
+                    <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' }}>Personal</div>
                 </div>
-            )}
-
-            {loading ? (
-                <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}>
-                    <Loader2 className="animate-spin" size={48} color="var(--primary-accent)" />
+                <Link to="/my-registrations" className="sidebar-item active">
+                    <Ticket size={18} /> My Tickets
+                </Link>
+                <Link to="/" className="sidebar-item">
+                    <Zap size={18} /> Discover Events
+                </Link>
+                
+                <div className="divider" style={{ margin: '1rem 0.5rem' }} />
+                
+                <div style={{ padding: '0 0.5rem 1rem' }}>
+                    <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' }}>Support</div>
                 </div>
-            ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
-                    {registrations.length > 0 ? (
-                        registrations.map(reg => (
+                <button className="sidebar-item">
+                    <AlertCircle size={18} /> Help Center
+                </button>
+            </aside>
+
+            {/* Content */}
+            <main className="dashboard-content">
+                <header className="section-header">
+                    <div>
+                        <h1 className="section-title">My Event Tickets</h1>
+                        <p className="section-subtitle">Manage your registrations and access your entry tickets</p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <button onClick={fetchRegistrations} className="btn btn-ghost btn-icon" title="Refresh">
+                            <RefreshCcw size={18} className={loading ? 'animate-spin' : ''} />
+                        </button>
+                        <Link to="/" className="btn btn-primary">
+                            <Plus size={18} /> Find More Events
+                        </Link>
+                    </div>
+                </header>
+
+                {error && (
+                    <div className="alert alert-error mb-4">
+                        <AlertCircle size={18} />
+                        <div>
+                            <div style={{ fontWeight: 600 }}>Sync Issue</div>
+                            <div>{error}</div>
+                        </div>
+                    </div>
+                )}
+
+                <div className="card mb-4" style={{ padding: '1rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div className="search-bar" style={{ maxWidth: '350px' }}>
+                        <Search size={16} className="search-icon" />
+                        <input 
+                            type="text" 
+                            placeholder="Search your tickets..." 
+                            className="input-field" 
+                            style={{ paddingLeft: '40px' }}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <button className="btn btn-ghost btn-sm">
+                        <Filter size={14} /> Recently Added
+                    </button>
+                </div>
+
+                <div className="grid-events">
+                    {filteredRegistrations.length > 0 ? (
+                        filteredRegistrations.map(reg => (
                             <EventCard 
                                 key={reg._id} 
                                 event={reg.event} 
@@ -70,18 +131,26 @@ const MyRegistrations = () => {
                         ))
                     ) : (
                         !error && (
-                            <div className="glass-card" style={{ gridColumn: '1/-1', textAlign: 'center', padding: '5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
-                                <Sparkles size={48} color="var(--primary-accent)" style={{ opacity: 0.5 }} />
-                                <div>
-                                    <h3 style={{ marginBottom: '0.5rem' }}>No registrations yet</h3>
-                                    <p style={{ color: 'var(--text-muted)' }}>You haven't registered for any events. Start exploring!</p>
+                            <div className="card empty-state" style={{ gridColumn: '1 / -1', padding: '5rem 2rem' }}>
+                                <div className="empty-icon" style={{ background: 'rgba(79, 70, 229, 0.05)', color: 'var(--primary)' }}>
+                                    <Sparkles size={32} />
                                 </div>
-                                <button onClick={() => window.location.href = '/'} className="btn-primary">Explore Events</button>
+                                <div style={{ maxWidth: '400px' }}>
+                                    <h3 style={{ fontWeight: 800, marginBottom: '0.5rem' }}>Your ticket box is empty</h3>
+                                    <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+                                        {searchTerm ? "No tickets found matching your search." : "You haven't registered for any events yet. Explore upcoming campus activities and join in!"}
+                                    </p>
+                                    {!searchTerm && (
+                                        <Link to="/" className="btn btn-primary">
+                                            Explore Events <ArrowRight size={18} />
+                                        </Link>
+                                    )}
+                                </div>
                             </div>
                         )
                     )}
                 </div>
-            )}
+            </main>
         </div>
     );
 };
