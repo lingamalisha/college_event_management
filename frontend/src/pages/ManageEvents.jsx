@@ -5,10 +5,9 @@ import {
     Search, ExternalLink, Edit2, LayoutDashboard, Users, 
     Zap, TrendingUp, Filter, MoreVertical, RefreshCcw
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const ManageEvents = () => {
-    const navigate = useNavigate();
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [deletingId, setDeletingId] = useState(null);
@@ -25,7 +24,7 @@ const ManageEvents = () => {
             const { data } = await API.get('/events');
             setEvents(data);
             setError('');
-        } catch (err) {
+        } catch {
             setError('Failed to fetch events. Please try again.');
         } finally {
             setLoading(false);
@@ -39,7 +38,7 @@ const ManageEvents = () => {
         try {
             await API.delete(`/events/${id}`);
             setEvents(events.filter(e => e._id !== id));
-        } catch (err) {
+        } catch {
             alert('Failed to delete event');
         } finally {
             setDeletingId(null);
@@ -108,6 +107,13 @@ const ManageEvents = () => {
                         </Link>
                     </div>
                 </header>
+
+                {error && (
+                    <div className="alert alert-error mb-4">
+                        <AlertCircle size={18} />
+                        <span>{error}</span>
+                    </div>
+                )}
 
                 {/* Quick Stats Grid */}
                 <div className="grid-4 mb-4">

@@ -19,13 +19,13 @@ const seedAdmin = async () => {
     const admin = await User.create({
       name: "Evently Admin",
       email: "admin@evently.com",
-      password: "adminpassword123",
+      password: process.env.ADMIN_PASSWORD || "adminpassword123",
       role: "admin",
     });
 
     console.log("Admin user created successfully!");
     console.log("Email: admin@evently.com");
-    console.log("Password: adminpassword123");
+    console.log(`Password: ${process.env.ADMIN_PASSWORD ? "******** (Loaded from env)" : "adminpassword123 (Default)"}`);
     process.exit();
   } catch (error) {
     console.error("Error seeding admin:", error.message);

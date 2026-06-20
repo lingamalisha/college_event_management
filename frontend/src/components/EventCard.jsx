@@ -32,7 +32,9 @@ const EventCard = ({ event, onDeleteSuccess, onViewTicket }) => {
     const isPast = eventDate < new Date();
     const gradient = EVENT_COLORS[getColorIndex(event._id)];
 
-    const titleInitials = event.title?.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase() || 'EV';
+    const titleInitials = event.title 
+        ? event.title.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() 
+        : 'EV';
 
     const handleDelete = async (e) => {
         e.preventDefault();

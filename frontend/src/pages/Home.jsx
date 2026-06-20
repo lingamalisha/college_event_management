@@ -23,7 +23,7 @@ const Home = () => {
                 const { data } = await API.get('/events');
                 setEvents(data);
                 setError('');
-            } catch (err) {
+            } catch {
                 setError('Could not connect to the server. Please check your connection.');
             } finally {
                 setLoading(false);
@@ -32,11 +32,28 @@ const Home = () => {
         fetchEvents();
     }, []);
 
-    const filteredEvents = events.filter(event =>
-        (event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.venue?.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+    const getEventCategory = (event) => {
+        const text = `${event.title || ''} ${event.description || ''}`.toLowerCase();
+        if (text.includes('tech') || text.includes('code') || text.includes('hackathon') || text.includes('summit') || text.includes('developer')) return 'Tech';
+        if (text.includes('sport') || text.includes('cricket') || text.includes('football') || text.includes('tournament') || text.includes('athletic')) return 'Sports';
+        if (text.includes('cultur') || text.includes('art') || text.includes('music') || text.includes('dance') || text.includes('drama') || text.includes('festival')) return 'Cultural';
+        if (text.includes('workshop') || text.includes('bootcamp') || text.includes('learn')) return 'Workshop';
+        if (text.includes('seminar') || text.includes('talk') || text.includes('lecture') || text.includes('panel')) return 'Seminar';
+        return 'Workshop'; // fallback category
+    };
+
+    const filteredEvents = events.filter(event => {
+        const matchesSearch = (
+            (event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            event.venue?.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+
+        if (activeCategory === 'All') return matchesSearch;
+
+        const eventCategory = getEventCategory(event);
+        return matchesSearch && eventCategory === activeCategory;
+    });
 
     return (
         <div className="page-wrapper">

@@ -27,7 +27,9 @@ const Navbar = () => {
     }, []);
 
     const isActive = (path) => location.pathname === path;
-    const initials = user?.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U';
+    const initials = user?.name 
+        ? user.name.split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase().slice(0, 2) 
+        : 'U';
 
     return (
         <nav className="nav">

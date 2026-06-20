@@ -25,7 +25,7 @@ export const registerForEvent = asyncHandler(async (req, res) => {
   }
 
   const registration = await Registration.create({
-    user: req.user?._id || null, // Optional user ID if logged in
+    user: req.user._id, // Strictly link logged-in user
     event: eventId,
     studentName,
     studentEmail,

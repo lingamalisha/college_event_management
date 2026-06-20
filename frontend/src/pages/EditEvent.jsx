@@ -20,14 +20,20 @@ const EditEvent = () => {
         const fetchEvent = async () => {
             try {
                 const { data } = await API.get(`/events/${id}`);
-                const formattedDate = new Date(data.date).toISOString().slice(0, 16);
+                let formattedDate = '';
+                if (data.date) {
+                    const parsedDate = new Date(data.date);
+                    if (!isNaN(parsedDate.getTime())) {
+                        formattedDate = parsedDate.toISOString().slice(0, 16);
+                    }
+                }
                 setFormData({
-                    title: data.title,
-                    description: data.description,
+                    title: data.title || '',
+                    description: data.description || '',
                     date: formattedDate,
-                    venue: data.venue
+                    venue: data.venue || ''
                 });
-            } catch (err) {
+            } catch {
                 setError('Failed to load event details. Please verify the event ID.');
             } finally {
                 setLoading(false);

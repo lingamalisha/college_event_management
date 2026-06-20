@@ -84,3 +84,44 @@ export const deleteEvent = asyncHandler(async (req, res) => {
     throw new Error("Event not found");
   }
 });
+
+// @desc    Get event analytics using aggregation
+// @route   GET /api/events/analytics
+// @access  Public
+export const getEventAnalytics = asyncHandler(async (req, res) => {
+  const stats = await Event.aggregate([
+    {
+      $lookup: {
+        from: "registrations",
+        localField: "_id",
+        foreignField: "event",
+        as: "registrations",
+      },
+    },
+    {
+      $addFields: {
+        registrationCount: { $size: "$registrations" },
+      },
+    },
+    {
+      $group: {
+        _id: "$venue",
+        totalEvents: { $sum: 1 },
+        avgRegistrations: { $avg: "$registrationCount" },
+        events: { $push: { title: "$title", count: "$registrationCount" } },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        venue: "$_id",
+        totalEvents: 1,
+        avgRegistrations: { $round: ["$avgRegistrations", 2] },
+        events: 1,
+      },
+    },
+    { $sort: { avgRegistrations: -1 } },
+  ]);
+
+  res.json(stats);
+});

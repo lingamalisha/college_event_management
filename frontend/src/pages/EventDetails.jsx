@@ -82,7 +82,7 @@ const EventDetails = () => {
         try {
             await API.delete(`/events/${id}`);
             navigate('/');
-        } catch (err) {
+        } catch {
             setError('Failed to delete event');
             setDeleting(false);
         }
