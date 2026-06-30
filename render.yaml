@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: event-management-fullstack
+    env: node
+    buildCommand: npm run build
+    startCommand: npm start
+    envVars:
+      - key: MONGO_URI
+        sync: false
+        placeholder: "Your MongoDB Atlas Connection URI"
+      - key: JWT_SECRET
+        sync: false
+        generateValue: true
+      - key: PORT
+        value: 10000
